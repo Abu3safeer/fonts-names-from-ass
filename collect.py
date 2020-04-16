@@ -33,20 +33,37 @@ collection = {}
 
 # This list will store data temporarily, and set for characters
 collected_fonts_container = []
-character_set = set()
+character_set = []
+
+# Here all full path subtitles files will be stores
+subtitles_full_path = []
 
 # Get all ass files in directory and sub directories
 subs = Path('.').rglob('*.ass')
+for subtitle in subs:
+    subtitles_full_path.append(str(subtitle.resolve()))
+
+# Check if there any ass files found
+if len(subtitles_full_path) > 0:
+    logger.debug('Found {ASS_FILES_COUNT} ass files, They are {ASS_FILES_LIST}'.format_map({
+        'ASS_FILES_COUNT': len(subtitles_full_path),
+        'ASS_FILES_LIST': str(subtitles_full_path),
+    }))
+else:
+    logger.warning('Cannot find any ass files.')
+    exit()
+
 
 # For each subtitle file
-for sub in subs:
+for full_file_path in subtitles_full_path:
 
-    # Get the full path of this file
-    full_file_path = str(sub.resolve())
+    # Logging the current file
+    logger.debug('Working on file {FILE_NAME}'.format_map({'FILE_NAME': full_file_path}))
 
     try:
         # Load the subtitle file and parse it
         fl = pysubs2.load(full_file_path)
+        logger.debug('Loaded the file successfully.')
 
         logger.debug('File "{FILE_NAME}" has "{STYLES_NUMBER}" styles, and there names are \n"{STYLES_LIST}"'.format_map({
             'FILE_NAME': full_file_path,
@@ -59,6 +76,10 @@ for sub in subs:
 
             # Make sure the event is a Dialogue and check if the Dialogue is not empty
             if event.type == 'Dialogue' and len(event.text) > 0:
+
+                logger.debug('Processing Dialogue: "{DIALOGUE}"'.format_map({
+                    'DIALOGUE': str(event.text)
+                }))
 
                 # Prepare font properties
                 current_font = {
@@ -167,22 +188,22 @@ for sub in subs:
                                     if current_font['italic']:
                                         font_name += '-italic'
 
-                                    # collection.update({
-                                    #     font_name: current_font
-                                    # })
+                                    # Make sure character set is empty before fill it
+                                    character_set = []
 
                                     # This will get all used characters in this Dialogue
                                     for char in tag.text:
-                                        character_set.add(char)
+                                        character_set.append(char)
 
                                     collected_fonts_container.append([
                                         font_name,
                                         current_font['fontname'],
                                         current_font['bold'],
                                         current_font['italic'],
-                                        character_set
+                                        set(character_set)
                                         ],
                                     )
+
                 except (ass_tag_parser.BaseError, ass_tag_parser.ParseError,
                         ass_tag_parser.UnexpectedCurlyBrace, ass_tag_parser.UnknownTag,
                         ass_tag_parser.UnterminatedCurlyBrace, ass_tag_parser.BadAssTagArgument) as errrr:
@@ -195,18 +216,23 @@ for sub in subs:
     except (pysubs2.FormatAutodetectionError, pysubs2.Pysubs2Error,
             pysubs2.UnknownFileExtensionError, pysubs2.UnknownFormatIdentifierError,
             pysubs2.UnknownFPSError) as errr:
-        logger.warning('Error occurred while parsing {FILE_NAME}\n Error message is "{ERROR}"'.format_map({
+        logger.warning('Error occurred while parsing file {FILE_NAME}\n Error message is "{ERROR}"'.format_map({
             'FILE_NAME': full_file_path,
             'ERROR': errr
         }))
-    except (TypeError, ValueError) as errrrr:
-        logger.warning('Error occurred while parsing {FILE_NAME}\n Error message is "{ERROR}"'.format_map({
+    except (TypeError, ValueError, AttributeError) as errrrr:
+        logger.warning('Error occurred while parsing file {FILE_NAME}\n Error message is "{ERROR}"'.format_map({
             'FILE_NAME': full_file_path,
             'ERROR': errrrr
         }))
 
+
+logger.debug('Collected RAW data are:')
+
 # for each style data
 for tbd in collected_fonts_container:
+
+    logger.debug(tbd)
 
     # Merge character set to a single string
     chars_to_str = ''
