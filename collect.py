@@ -132,13 +132,13 @@ for full_file_path in subtitles_full_path:
                                 # If the style name is not in style list
                                 if tag.style not in fl.styles:
                                     logger.warning('The Dialogue \n"{DIALOGUE_TEXT}"\n has {RESET_TAG} tag, '
-                                                   'This tag tried to set style to {R_TAG_STYLE_NAME}, '
-                                                   'But {R_TAG_STYLE_NAME} is not is \n{STYLES_LIST},\n'
+                                                   'This tag tried to set style to {RESET_TAG_STYLE_NAME}, '
+                                                   'But {RESET_TAG_STYLE_NAME} is not is \n{STYLES_LIST},\n'
                                                    'in file {FILE_NAME}'
                                                    .format_map({
                                                         'DIALOGUE_TEXT': event.text,
-                                                        'R_TAG': r'{\r}',
-                                                        'R_TAG_STYLE_NAME': tag.style,
+                                                        'RESET_TAG': r'{\r}',
+                                                        'RESET_TAG_STYLE_NAME': tag.style,
                                                         'STYLES_LIST': list(fl.styles),
                                                         'FILE_NAME': full_file_path,
                                                     }))
