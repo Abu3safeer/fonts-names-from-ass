@@ -13,11 +13,15 @@ file_handler.setFormatter(logger_formatter)  # Assign the custom format to warni
 warning_file_handler = logging.FileHandler('warnings.txt', encoding='utf-8')  # Setup warning file handler where logs will be stored
 warning_file_handler.setLevel(logging.WARNING)  # Set warning file handler log level
 warning_file_handler.setFormatter(logger_formatter)  # Assign the custom format to file handler
+error_file_handler = logging.FileHandler('missing styles.txt', encoding='utf-8')  # Setup error file handler where logs will be stored
+error_file_handler.setLevel(logging.ERROR)  # Set warning file handler log level
+error_file_handler.setFormatter(logger_formatter)  # Assign the custom format to file handler
 stream_handler = logging.StreamHandler()  # Setup Stream handler
 stream_handler.setLevel(logging.INFO)  # Set stream handler log level
 stream_handler.setFormatter(logger_formatter)  # Assign Custom format to stream handler
 logger.addHandler(file_handler)  # Add file handler to the logger
 logger.addHandler(warning_file_handler)  # Add file handler to the logger
+logger.addHandler(error_file_handler)  # Add file handler to the logger
 logger.addHandler(stream_handler)  # Add stream handler to the logger
 # End preparing the logger
 
@@ -91,7 +95,7 @@ for full_file_path in subtitles_full_path:
                 if event.style not in fl.styles.keys():
 
                     # If the style used in this Dialogue is not in styles, then show this warning
-                    logger.warning('Style "{STYLE_NAME}" is not in \n"{STYLES_LIST}",\n'
+                    logger.error('Style "{STYLE_NAME}" is not in \n"{STYLES_LIST}",\n'
                                    'This Style used in "{EVENT_TYPE}" '
                                    'with this content \n"{EVENT_CONTENT}",\n'
                                    'found in file with this name: "{FILE_NAME}"'.format_map(
@@ -131,7 +135,7 @@ for full_file_path in subtitles_full_path:
 
                                 # If the style name is not in style list
                                 if tag.style not in fl.styles:
-                                    logger.warning('The Dialogue \n"{DIALOGUE_TEXT}"\n has {RESET_TAG} tag, '
+                                    logger.error('The Dialogue \n"{DIALOGUE_TEXT}"\n has {RESET_TAG} tag, '
                                                    'This tag tried to set style to {RESET_TAG_STYLE_NAME}, '
                                                    'But {RESET_TAG_STYLE_NAME} is not is \n{STYLES_LIST},\n'
                                                    'in file {FILE_NAME}'
