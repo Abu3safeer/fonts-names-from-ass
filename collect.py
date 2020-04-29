@@ -57,6 +57,12 @@ else:
     logger.warning('Cannot find any ass files.')
     exit()
 
+# create an ass file for unparsed Dialogues
+# The idea of this file is: if this script is not able to parse
+# the file for any reason and throw an exception, in this case
+# the file should just store the original Dialogue with it's style
+# This way we can keep all these broken rows to be investigated later.
+unparsed_ass = pysubs2.SSAFile()
 
 # For each subtitle file
 for full_file_path in subtitles_full_path:
@@ -117,7 +123,7 @@ for full_file_path in subtitles_full_path:
                     # Parsing the Dialogue
                     ass_tags = ass_tag_parser.parse_ass(event.text)
 
-                    # Paring each tag individually
+                    # Parsing each tag individually
                     for tag in ass_tags:
 
                         # Check if tag is AssTagResetStyle, this tag does one thing of two:
@@ -148,14 +154,20 @@ for full_file_path in subtitles_full_path:
                                                     }))
                                 # Otherwise the style must be in the style list, then use it.
                                 else:
-                                    current_font['fontname'] = fl.styles[tag.style].fontname
-                                    current_font['bold'] = fl.styles[tag.style].bold
-                                    current_font['italic'] = fl.styles[tag.style].italic
+                                    current_font['fontname'] = fl.styles[event.style].fontname
+                                    current_font['bold'] = fl.styles[event.style].bold
+                                    current_font['italic'] = fl.styles[event.style].italic
 
                         if type(tag) == ass_tag_parser.AssTagBold:
-                            current_font['bold'] = tag.enabled
+                            if tag.enabled is None:
+                                current_font['bold'] = fl.styles[event.style].bold
+                            else:
+                                current_font['bold'] = tag.enabled
                         elif type(tag) == ass_tag_parser.AssTagItalic:
-                            current_font['italic'] = tag.enabled
+                            if tag.enabled is None:
+                                current_font['italic'] = fl.styles[event.style].italic
+                            else:
+                                current_font['italic'] = tag.enabled
                         elif type(tag) == ass_tag_parser.AssTagFontName:
                             current_font['fontname'] = tag.name
                         elif type(tag) == ass_tag_parser.AssText:
@@ -217,6 +229,10 @@ for full_file_path in subtitles_full_path:
                         'ERROR': errrr
                     }))
 
+                    # add the unparsed tag to unparsed file
+                    unparsed_ass.styles[event.style] = fl.styles[event.style]
+                    unparsed_ass.append(event)
+
     except (pysubs2.FormatAutodetectionError, pysubs2.Pysubs2Error,
             pysubs2.UnknownFileExtensionError, pysubs2.UnknownFormatIdentifierError,
             pysubs2.UnknownFPSError) as errr:
@@ -256,7 +272,9 @@ logger.debug(collection)
 
 # Prepare the output ass file
 output_ass = pysubs2.SSAFile()
-output_ass.clear() # Clear the ass file from all pre-defined styles.
+
+# This part is not working, so I will comment it till I find the reason.
+# output_ass.clear()  # Clear the ass file from all pre-defined styles.
 
 # Insert all styles and their proper text to one ass file object
 for details in collection:
@@ -274,4 +292,5 @@ for details in collection:
 
 # Finally save the data to one ass file
 output_ass.save('output.ass', encoding='utf-8-sig')
+unparsed_ass.save('unparsed_tags.ass', encoding='utf-8-sig')
 
