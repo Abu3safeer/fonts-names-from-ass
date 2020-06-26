@@ -114,7 +114,7 @@ for full_file_path in subtitles_full_path:
                         }))
                 else:
 
-                    # Prepare font date
+                    # Prepare font data
                     current_font['fontname'] = fl.styles[event.style].fontname
                     current_font['bold'] = fl.styles[event.style].bold
                     current_font['italic'] = fl.styles[event.style].italic
@@ -230,7 +230,9 @@ for full_file_path in subtitles_full_path:
                     }))
 
                     # add the unparsed tag to unparsed file
-                    unparsed_ass.styles[event.style] = fl.styles[event.style]
+                    if event.style in fl.styles.keys():
+                        unparsed_ass.styles[event.style] = fl.styles[event.style]
+
                     unparsed_ass.append(event)
 
     except (pysubs2.FormatAutodetectionError, pysubs2.Pysubs2Error,
